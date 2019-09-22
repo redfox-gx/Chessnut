@@ -1,1 +1,2 @@
+numpy
 coverage==3.7

@@ -2,7 +2,6 @@
 import unittest
 from Chessnut.game import Game, InvalidMove
 
-
 # Default FEN string
 START_POS = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
@@ -23,11 +22,11 @@ class GameTest(unittest.TestCase):
 
     def test_i2xy(self):
         for idx in range(64):
-            self.assertIn(Game.i2xy(idx), ALG_POS)
+            self.assertIn(self.game.i2xy(idx), ALG_POS)
 
     def test_xy2i(self):
         for pos in ALG_POS:
-            self.assertIn(Game.xy2i(pos), IDX_POS)
+            self.assertIn(self.game.xy2i(pos), IDX_POS)
 
     def test_str(self):
         self.game.reset()  # reset board to starting position

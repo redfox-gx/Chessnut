@@ -61,19 +61,18 @@ class Game(object):
         """Return the current FEN representation of the game."""
         return ' '.join(str(x) for x in [self.board] + list(self.state))
 
-    @staticmethod
-    def i2xy(pos_idx):
+    def i2xy(self, pos_idx):
         """
         Convert a board index to algebraic notation.
         """
-        return chr(97 + pos_idx % 8) + str(8 - pos_idx // 8)
+        return chr(97 + pos_idx % self.board.get_row_size()) + \
+               str(self.board.get_row_size() - pos_idx // self.board.get_row_size())
 
-    @staticmethod
-    def xy2i(pos_xy):
+    def xy2i(self, pos_xy):
         """
         Convert algebraic notation to board index.
         """
-        return (8 - int(pos_xy[1])) * 8 + (ord(pos_xy[0]) - ord('a'))
+        return (self.board.get_row_size() - int(pos_xy[1])) * self.board.get_row_size() + (ord(pos_xy[0]) - ord('a'))
 
     def get_fen(self):
         """
@@ -137,8 +136,8 @@ class Game(object):
         # convert to lower case to avoid casing issues
         move = move.lower()
 
-        start = Game.xy2i(move[:2])
-        end = Game.xy2i(move[2:4])
+        start = self.xy2i(move[:2])
+        end = self.xy2i(move[2:4])
         piece = self.board.get_piece(start)
         target = self.board.get_piece(end)
 
@@ -162,7 +161,7 @@ class Game(object):
 
         # set en passant target square when a pawn advances two spaces
         if piece.lower() == 'p' and abs(start - end) == 16:
-            fields[2] = Game.i2xy((start + end) // 2)
+            fields[2] = self.i2xy((start + end) // 2)
 
         # reset the half move counter when a pawn moves or is captured
         fields[3] = self.state.ply + 1
@@ -195,8 +194,8 @@ class Game(object):
 
         # in en passant remove the piece that is captured
         if piece.lower() == 'p' and self.state.en_passant != '-' \
-                and Game.xy2i(self.state.en_passant) == end:
-            ep_tgt = Game.xy2i(self.state.en_passant)
+                and self.xy2i(self.state.en_passant) == end:
+            ep_tgt = self.xy2i(self.state.en_passant)
             if ep_tgt < 24:
                 self.board.move_piece(end + 8, end + 8, ' ')
             elif ep_tgt > 32:
@@ -233,8 +232,8 @@ class Game(object):
             # Don't allow castling out of or through the king in check
             k_sym, opp = {'w': ('K', 'b'), 'b': ('k', 'w')}.get(player)
             kdx = self.board.find_piece(k_sym)
-            k_loc = Game.i2xy(kdx)
-            dx = abs(kdx - Game.xy2i(move[2:4]))
+            k_loc = self.i2xy(kdx)
+            dx = abs(kdx - self.xy2i(move[2:4]))
 
             if move[0:2] == k_loc and dx == 2:
 
@@ -254,7 +253,7 @@ class Game(object):
             test_board.apply_move(move)
             tgts = set([m[2:4] for m in test_board.get_moves()])
 
-            if Game.i2xy(test_board.board.find_piece(k_sym)) not in tgts:
+            if self.i2xy(test_board.board.find_piece(k_sym)) not in tgts:
                 res_moves.append(move)
 
         return res_moves
@@ -306,8 +305,8 @@ class Game(object):
         for end in ray:
 
             sym = piece.lower()
-            del_x = abs(end - start) % 8
-            move = [Game.i2xy(start) + Game.i2xy(end)]
+            del_x = abs(end - start) % self.board.get_row_size()
+            move = [self.i2xy(start) + self.i2xy(end)]
             tgt_owner = self.board.get_owner(end)
 
             # Abort if the current player owns the piece at the end point
@@ -333,7 +332,7 @@ class Game(object):
                 # Test en passant exception for pawn
                 elif del_x != 0 and not tgt_owner:
                     ep_coords = self.state.en_passant
-                    if ep_coords == '-' or end != Game.xy2i(ep_coords):
+                    if ep_coords == '-' or end != self.xy2i(ep_coords):
                         break
 
                 # Pawn promotions should list all possible promotions
@@ -352,7 +351,7 @@ class Game(object):
     def status(self):
 
         k_sym, opp = {'w': ('K', 'b'), 'b': ('k', 'w')}.get(self.state.player)
-        k_loc = Game.i2xy(self.board.find_piece(k_sym))
+        k_loc = self.i2xy(self.board.find_piece(k_sym))
         can_move = len(self.get_moves())
         is_exposed = [m[2:] for m in self._all_moves(player=opp)
                       if m[2:] == k_loc]
