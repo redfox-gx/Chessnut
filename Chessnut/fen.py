@@ -6,6 +6,9 @@ from enum import Enum, unique
 
 
 class FEN4:
+    """
+    FEN4 https://en.wikibooks.org/wiki/Four-Player_Chess/Notation
+    """
     @unique
     class PART(Enum):
         ACTIVE_PLAYER = 0
@@ -33,10 +36,30 @@ class FEN4:
         for row in fen4_pieces_rows:
             pieces = row.split(',')
             for piece in pieces:
-                try:
+                if piece.isnumeric():
                     space_count = int(piece)
                     pieces_raster.extend([' '] * space_count)
-                    pass
-                except ValueError:
+                else:
                     pieces_raster.extend([piece])
         return pieces_raster
+
+    @staticmethod
+    def generate_fen_piece_placement(piece_raster:list, row_size:int):
+        pos = []
+        for idx, piece in enumerate(piece_raster):
+            if idx > 0 and idx % row_size == 0:
+                # end of row line separator and append count
+                pos.extend('/')
+            if str(piece).isspace():
+                if pos and pos[-1].isnumeric():
+                    pos[-1] = str(int(pos[-1]) + 1)
+                else:
+                    pos.append('1')
+            else:
+                if pos and pos[-1].isnumeric():
+                    pos.append(',')
+                pos.append(piece)
+                if idx % row_size != row_size - 1:
+                    pos.append(',')
+        return ''.join(pos)
+
