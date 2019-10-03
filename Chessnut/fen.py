@@ -5,10 +5,22 @@ https://en.wikibooks.org/wiki/Four-Player_Chess/Notation
 from enum import Enum, unique
 
 
+class FEN:
+    promotions = ['b', 'n', 'r', 'q']
+
+
 class FEN4:
     """
     FEN4 https://en.wikibooks.org/wiki/Four-Player_Chess/Notation
     """
+    default_fen_4p = "R-0,0,0,0-1,1,1,1-1,1,1,1-0,0,0,0-0-3,yR,yN,yB,yK,yQ,yB,yN,yR,3/3,yP,yP,yP,yP,yP,yP,yP,yP,3/14/" \
+                     + \
+                     "bR,bP,10,gP,gR/bN,bP,10,gP,gN/bB,bP,10,gP,gB/bK,bP,10,gP,gQ/bQ,bP,10,gP,gK/bB,bP,10,gP,gB/bN,bP" \
+                     + \
+                     ",10,gP,gN/bR,bP,10,gP,gR/14/3,rP,rP,rP,rP,rP,rP,rP,rP,3/3,rR,rN,rB,rQ,rK,rB,rN,rR,3"
+
+    promotions = ['q']
+
     @unique
     class PART(Enum):
         ACTIVE_PLAYER = 0
@@ -42,6 +54,26 @@ class FEN4:
                 else:
                     pieces_raster.extend([piece])
         return pieces_raster
+
+    @staticmethod
+    def generate_fen_game_state(state):
+        """
+        generates the first part of FEN4 format from State4P namedtuple
+        :param state: State4P namedtuple
+        :return: first part of FEN4 string
+        """
+        fen_game_state = ''
+        for state_part in state:
+            if type(state_part) is list:
+                part = ','.join(str(x) for x in state_part)
+                fen_game_state = '-'.join([fen_game_state, part])
+            else:
+                fen_game_state = str(state_part).upper()
+        return fen_game_state
+
+    @staticmethod
+    def append_part(a, b):
+        return '-'.join([a, b])
 
     @staticmethod
     def generate_fen_piece_placement(piece_raster:list, row_size:int):
