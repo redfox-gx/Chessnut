@@ -11,11 +11,12 @@ Chessnut has neither an *engine*, nor a *GUI*, and it cannot currently
 handle any chess variants (e.g., Chess960) that are not equivalent to standard
 chess rules.
 """
-
+import re
 from collections import namedtuple
 
 from Chessnut.board import Board
 from Chessnut.moves import MOVES
+from Chessnut.fen import FEN
 
 # Define a named tuple with FEN field names to hold game state information
 State = namedtuple('State', ['player', 'rights', 'en_passant', 'ply', 'turn'])
@@ -43,6 +44,8 @@ class Game(object):
     STALEMATE = 3
 
     default_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    moves = MOVES
+    fen_state = FEN()
 
     def __init__(self, fen=default_fen, validate=True):
         """
@@ -72,7 +75,8 @@ class Game(object):
         """
         Convert algebraic notation to board index.
         """
-        return (self.board.get_row_size() - int(pos_xy[1])) * self.board.get_row_size() + (ord(pos_xy[0]) - ord('a'))
+        move_part = re.split('(\d{1,2})', pos_xy, flags=re.IGNORECASE)
+        return (self.board.get_row_size() - int(move_part[1])) * self.board.get_row_size() + (ord(move_part[0]) - ord('a'))
 
     def get_fen(self):
         """
@@ -275,8 +279,7 @@ class Game(object):
             # MOVES contains the list of all possible moves for a piece of
             # the specified type on an empty chess board.
             piece = self.board.get_piece(start)
-            rays = MOVES.get(piece, [''] * 64)
-
+            rays = self._all_moves_for_piece(piece, player)
             for ray in rays[start]:
                 # Trace each of the 8 (or fewer) possible directions that a
                 # piece at the given starting index could move
@@ -285,6 +288,9 @@ class Game(object):
                 res_moves.extend(new_moves)
 
         return res_moves
+
+    def _all_moves_for_piece(self, piece, player):
+        return self.moves.get(piece, [''] * self.board.get_idx_range())
 
     def _trace_ray(self, start, piece, ray, player):
         """
@@ -317,7 +323,8 @@ class Game(object):
             if sym == 'k' and del_x == 2:
                 gap_owner = self.board.get_owner((start + end) // 2)
                 out_owner = self.board.get_owner(end - 1)
-                rights = {62: 'K', 58: 'Q', 6: 'k', 2: 'q'}.get(end, ' ')
+
+                rights = self.board.castling_type_dict.get(end, ' ')
                 if (tgt_owner or gap_owner or rights not in self.state.rights or
                         (rights.lower() == 'q' and out_owner)):
                     # Abort castling because missing castling rights
@@ -336,8 +343,8 @@ class Game(object):
                         break
 
                 # Pawn promotions should list all possible promotions
-                if (end < 8 or end > 55):
-                    move = [move[0] + s for s in ['b', 'n', 'r', 'q']]
+                if self.board.is_promotion(end):
+                    move = [move[0] + s for s in self.fen_state.promotions]
 
             res_moves.extend(move)
 

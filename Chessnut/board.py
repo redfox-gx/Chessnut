@@ -11,8 +11,11 @@ class Board(object):
     This class manages the position of all pieces in a chess game. The
     position is stored as a list of single-character strings.
     """
+    _position = []
 
     def __init__(self, position=' ' * 64, row_size=8):
+        # castling type look up
+        self.castling_type_dict = {62: 'K', 58: 'Q', 6: 'k', 2: 'q'}
         self._row_size = row_size
         self._position = []
         self.set_position(position)
@@ -90,3 +93,10 @@ class Board(object):
 
     def get_row_size(self):
         return self._row_size
+
+    def get_idx_range(self):
+        return len(self._position)
+
+    @staticmethod
+    def is_promotion(target):
+        return target < 8 or target > 55
