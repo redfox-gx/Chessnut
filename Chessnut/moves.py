@@ -49,6 +49,8 @@ from copy import deepcopy
 # (up, down, left, right, diagonal) and the 8 directions a knight can move;
 # the index of the angle within this list will be used as the ray index to
 # group moves that lie in the same direction.
+row_size = 8
+raster_size = row_size * row_size
 DIRECTIONS = [(1, 0), (1, 1), (0, 1), (-1, 1),  # straight lines
               (-1, 0), (-1, -1), (0, -1), (1, -1),
               (2, 1), (1, 2), (-1, 2), (-2, 1),  # knights
@@ -80,7 +82,7 @@ for sym, is_legal in PIECES.items():
 
     MOVES[sym] = list()
 
-    for idx in range(64):
+    for idx in range(raster_size):
 
         # Initialize arrays for each of the 8 possible directions that a
         # piece could be moved; some of these will be empty and
@@ -89,13 +91,13 @@ for sym, is_legal in PIECES.items():
 
         # Sorting the list of end points by distance from the starting
         # point ensures that the ouptut order is properly sorted
-        for end in sorted(range(64), key=lambda x: abs(x - idx)):
+        for end in sorted(range(raster_size), key=lambda x: abs(x - idx)):
 
             # Determine the row, change in column, and change in row
             # of the start/end point pair for move validation
-            y = 8 - idx // 8
-            dx = (end % 8) - (idx % 8)
-            dy = (8 - end // 8) - y
+            y = row_size - idx // row_size
+            dx = (end % row_size) - (idx % row_size)
+            dy = (row_size - end // row_size) - y
 
             if idx == end or not is_legal(y, dx, dy):
                 continue
