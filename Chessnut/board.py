@@ -26,6 +26,11 @@ class Board(object):
         """
         np_pos = np.array(self._position.copy())
         np_pos = np.reshape(np_pos, (-1, self._row_size))
+        ranks = np.arange(self._row_size, 0, -1).reshape((self._row_size, 1))
+        np_pos = np.hstack((ranks, np_pos))
+        files = [' '] + list(map(chr, range(97, 97 + self._row_size)))
+        files = np.array(files).reshape((1, self._row_size + 1))
+        np_pos = np.vstack((np_pos, files))
         return str(np_pos)
 
     def __str__(self):
