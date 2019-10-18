@@ -1,7 +1,7 @@
 
 import unittest
 
-from Chessnut.moves4p import MOVES
+from Chessnut.variant.moves4p import MOVES
 
 
 class MovesTest(unittest.TestCase):

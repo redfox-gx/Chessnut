@@ -75,8 +75,12 @@ class Game(object):
         """
         Convert algebraic notation to board index.
         """
-        move_part = re.split('(\d{1,2})', pos_xy, flags=re.IGNORECASE)
+        move_part = self.get_move_parts(pos_xy)
         return (self.board.get_row_size() - int(move_part[1])) * self.board.get_row_size() + (ord(move_part[0]) - ord('a'))
+
+    @staticmethod
+    def get_move_parts(move):
+        return re.split('(\d{1,2})', move, flags=re.IGNORECASE)
 
     def get_fen(self):
         """
